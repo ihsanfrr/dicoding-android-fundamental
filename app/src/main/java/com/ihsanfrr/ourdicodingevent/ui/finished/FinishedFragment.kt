@@ -82,7 +82,7 @@ class FinishedFragment : Fragment() {
 
     private fun observeInactiveEvents() {
         Log.d("FinishedFragment", "observeInactiveEvents called")
-        viewModel.fetchInactiveEvents().observe(viewLifecycleOwner) { result ->
+        viewModel.fetchInactiveEvents(requireContext()).observe(viewLifecycleOwner) { result ->
             resultHandler(result)
         }
     }

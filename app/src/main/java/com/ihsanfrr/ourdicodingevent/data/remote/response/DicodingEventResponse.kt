@@ -14,18 +14,6 @@ data class DicodingEventResponse(
 	val message: String
 )
 
-data class DetailDicodingEventResponse(
-
-    @field:SerializedName("event")
-	val event: ListEventsItem,
-
-    @field:SerializedName("error")
-	val error: Boolean,
-
-    @field:SerializedName("message")
-	val message: String
-)
-
 data class ListEventsItem(
 
 	@field:SerializedName("summary")

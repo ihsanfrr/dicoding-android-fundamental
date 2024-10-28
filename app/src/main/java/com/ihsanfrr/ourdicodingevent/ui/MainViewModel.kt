@@ -1,5 +1,6 @@
 package com.ihsanfrr.ourdicodingevent.ui
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,18 +10,15 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import com.ihsanfrr.ourdicodingevent.data.DicodingEventRepository
 import com.ihsanfrr.ourdicodingevent.data.local.entity.DicodingEventEntity
-import com.ihsanfrr.ourdicodingevent.data.remote.response.DicodingEventResponse
-import com.ihsanfrr.ourdicodingevent.data.remote.response.ListEventsItem
-import com.ihsanfrr.ourdicodingevent.data.remote.retrofit.ApiConfig
 import com.ihsanfrr.ourdicodingevent.ui.notification.DailyReminderWorker
 import com.ihsanfrr.ourdicodingevent.ui.setting.SettingPreferences
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.concurrent.TimeUnit
 
-class MainViewModel(private val pref: SettingPreferences, private val dicodingEventRepository: DicodingEventRepository, private val workManager: androidx.work.WorkManager): ViewModel() {
+class MainViewModel(
+    private val pref: SettingPreferences,
+    private val dicodingEventRepository: DicodingEventRepository,
+    private val workManager: androidx.work.WorkManager): ViewModel() {
     private val _reminderIsEnabled = MutableLiveData<Boolean>()
     val reminderIsEnabled: LiveData<Boolean> = _reminderIsEnabled
 
@@ -32,9 +30,9 @@ class MainViewModel(private val pref: SettingPreferences, private val dicodingEv
         }
     }
 
-    fun fetchActiveEvents() = dicodingEventRepository.getEvents(1)
+    fun fetchActiveEvents(context: Context) = dicodingEventRepository.getActiveEvents(context)
 
-    fun fetchInactiveEvents() = dicodingEventRepository.getEvents(0)
+    fun fetchInactiveEvents(context: Context) = dicodingEventRepository.getInactiveEvent(context)
 
     fun searchEvents(active: Int, query: String) = dicodingEventRepository.searchEvent(active, query)
 

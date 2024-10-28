@@ -1,7 +1,6 @@
 package com.ihsanfrr.ourdicodingevent.ui
 
 import android.os.Bundle
-import android.text.Html
 import androidx.activity.viewModels
 import com.ihsanfrr.ourdicodingevent.R
 import androidx.appcompat.widget.Toolbar

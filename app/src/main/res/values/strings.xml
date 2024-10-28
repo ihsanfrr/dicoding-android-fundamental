@@ -9,16 +9,13 @@
     <string name="upcoming">Upcoming</string>
     <string name="finished">Finished</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title">Our Dicoding Event</string>
     <string name="upcoming_events">Upcoming Events</string>
     <string name="finished_events">Finished Events</string>
-    <string name="event_link">Dicoding Event Link</string>
     <string name="favorite">Favorite</string>
     <string name="open_event_link">Dicoding Event Link</string>
     <string name="daily_reminder">Daily Reminder</string>
     <string name="dark_mode">Dark Mode</string>
-    <string name="detail_event">Event Detail</string>
     <string name="no_link_found">Link Not Found</string>
     <string name="added_to_favorites">Added to Favorites</string>
     <string name="removed_from_favorites">Remove from Favorites</string>

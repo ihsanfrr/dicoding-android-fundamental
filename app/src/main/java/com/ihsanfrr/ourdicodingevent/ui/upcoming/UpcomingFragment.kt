@@ -80,7 +80,7 @@ class UpcomingFragment : Fragment() {
     }
 
     private fun observeActiveEvents() {
-        viewModel.fetchActiveEvents().observe(viewLifecycleOwner) { result ->
+        viewModel.fetchActiveEvents(requireContext()).observe(viewLifecycleOwner) { result ->
             resultHandler(result)
         }
     }

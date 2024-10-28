@@ -63,7 +63,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeGridRecycler(){
-        viewModel.fetchActiveEvents().observe(viewLifecycleOwner) { result ->
+        viewModel.fetchActiveEvents(requireContext()).observe(viewLifecycleOwner) { result ->
             if (result != null) {
                 when (result) {
                     is Result.Loading -> {
@@ -87,7 +87,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeListRecycler() {
-        viewModel.fetchInactiveEvents().observe(viewLifecycleOwner) { result ->
+        viewModel.fetchInactiveEvents(requireContext()).observe(viewLifecycleOwner) { result ->
             if (result != null) {
                 when (result) {
                     is Result.Loading -> {

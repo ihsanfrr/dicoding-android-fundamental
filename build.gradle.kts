@@ -11,7 +11,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.8.1")
-        classpath("com.google.devtools.ksp:symbol-processing-api:2.0.20-1.0.24")
+        classpath(libs.androidx.navigation.safe.args.gradle.plugin)
+        classpath(libs.symbol.processing.api)
     }
 }
