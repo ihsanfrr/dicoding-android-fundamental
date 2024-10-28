@@ -9,50 +9,30 @@
         android:id="@+id/navigation_home"
         android:name="com.ihsanfrr.ourdicodingevent.ui.home.HomeFragment"
         android:label="@string/home"
-        tools:layout="@layout/fragment_home" >
-        <action
-            android:id="@+id/action_navigation_home_to_detailFragment"
-            app:destination="@id/detailFragment">
-            <argument
-                android:name="eventId"
-                app:argType="integer" />
-        </action>
-    </fragment>
+        tools:layout="@layout/fragment_home" />
+
     <fragment
         android:id="@+id/navigation_upcoming"
         android:name="com.ihsanfrr.ourdicodingevent.ui.upcoming.UpcomingFragment"
         android:label="fragment_upcoming"
-        tools:layout="@layout/fragment_upcoming" >
-        <action
-            android:id="@+id/action_navigation_upcoming_to_detailFragment"
-            app:destination="@id/detailFragment">
-            <argument
-                android:name="eventId"
-                app:argType="integer" />
-        </action>
-    </fragment>
+        tools:layout="@layout/fragment_upcoming" />
+
     <fragment
         android:id="@+id/navigation_finished"
         android:name="com.ihsanfrr.ourdicodingevent.ui.finished.FinishedFragment"
         android:label="fragment_finished"
-        tools:layout="@layout/fragment_finished" >
-        <action
-            android:id="@+id/action_navigation_finished_to_detailFragment"
-            app:destination="@id/detailFragment">
-            <argument
-                android:name="eventId"
-                app:argType="integer" />
-        </action>
-    </fragment>
+        tools:layout="@layout/fragment_finished" />
+
     <fragment
-        android:id="@+id/detailFragment"
-        android:name="com.ihsanfrr.ourdicodingevent.ui.detail.DetailFragment"
-        android:label="fragment_detail"
-        tools:layout="@layout/fragment_detail">
-        <argument
-            android:name="eventId"
-            app:argType="integer"
-            android:defaultValue="-1"/>
-    </fragment>
+        android:id="@+id/navigation_favorite"
+        android:name="com.ihsanfrr.ourdicodingevent.ui.favorite.FavoriteFragment"
+        android:label="fragment_favorite"
+        tools:layout="@layout/fragment_favorite" />
+
+    <fragment
+        android:id="@+id/navigation_setting"
+        android:name="com.ihsanfrr.ourdicodingevent.ui.setting.SettingFragment"
+        android:label="fragment_setting"
+        tools:layout="@layout/fragment_setting" />
 
 </navigation>

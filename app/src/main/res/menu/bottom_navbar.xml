@@ -13,4 +13,12 @@
         android:id="@+id/navigation_finished"
         android:icon="@drawable/baseline_flag_24"
         android:title="@string/finished" />
+    <item
+        android:id="@+id/navigation_favorite"
+        android:icon="@drawable/baseline_favorite_24"
+        android:title="@string/title_favorites" />
+    <item
+        android:id="@+id/navigation_setting"
+        android:icon="@drawable/baseline_settings_24"
+        android:title="@string/title_settings" />
 </menu>

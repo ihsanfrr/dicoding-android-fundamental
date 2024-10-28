@@ -8,109 +8,111 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.ihsanfrr.ourdicodingevent.R
-import com.ihsanfrr.ourdicodingevent.adapter.ListDicodingEventAdapter
+import com.ihsanfrr.ourdicodingevent.adapter.DicodingEventAdapter
 import com.ihsanfrr.ourdicodingevent.databinding.FragmentUpcomingBinding
-import com.ihsanfrr.ourdicodingevent.helpers.ConnectionHelper
 import com.ihsanfrr.ourdicodingevent.ui.MainViewModel
+import com.ihsanfrr.ourdicodingevent.ui.ViewModelFactory
+import com.ihsanfrr.ourdicodingevent.ui.setting.SettingPreferences
+import com.ihsanfrr.ourdicodingevent.ui.setting.dataStore
+import com.ihsanfrr.ourdicodingevent.data.Result
+import com.ihsanfrr.ourdicodingevent.data.local.entity.DicodingEventEntity
 
 class UpcomingFragment : Fragment() {
 
-    private var binding: FragmentUpcomingBinding? = null
-    private lateinit var listrecyclerView: RecyclerView
+    private var _binding: FragmentUpcomingBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var listRecyclerView: RecyclerView
     private lateinit var searchViewUpcoming: SearchView
-    private lateinit var listAdapter: ListDicodingEventAdapter
+    private lateinit var listAdapter: DicodingEventAdapter
     private lateinit var progressBar: ProgressBar
-    private val viewModel: MainViewModel by viewModels()
+
+    private val viewModel: MainViewModel by viewModels {
+        ViewModelFactory.getInstance(requireContext(), SettingPreferences.getInstance(requireContext().applicationContext.dataStore))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentUpcomingBinding.inflate(inflater, container, false)
-        return binding!!.root
+        _binding = FragmentUpcomingBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        searchViewUpcoming = binding!!.searchViewUpcoming
+        searchViewUpcoming = binding.searchViewUpcoming
+        progressBar = binding.progressBar
+        listRecyclerView = binding.upcomingListRecyclerView
+
+        searchViewUpcoming.setQuery(null, false)
+        searchViewUpcoming.clearFocus()
+        searchViewUpcoming.isIconified = true
+
+        setupSearchView()
+        setupRecyclerView()
+        observeActiveEvents()
+    }
+
+    private fun setupSearchView() {
         searchViewUpcoming.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (!query.isNullOrEmpty()) {
-                    viewModel.searchEvents(1, query)
-                } else {
-                    viewModel.fetchEvents(1)
-                }
+            override fun onQueryTextSubmit(query: String): Boolean {
+                doSearch(query)
                 return true
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty()) {
-                    viewModel.fetchEvents(1)
-                    viewModel.clearError()
+            override fun onQueryTextChange(newText: String): Boolean {
+                if (newText.isBlank()) {
+                    observeActiveEvents()
                 }
                 return true
             }
         })
+    }
 
-        progressBar = binding!!.progressBar
-        listrecyclerView = binding!!.upcomingListRecyclerView
+    private fun setupRecyclerView() {
+        listAdapter = DicodingEventAdapter(viewModel, true)
+        listRecyclerView.adapter = listAdapter
+        listRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+    }
 
-        listAdapter = ListDicodingEventAdapter(
-            onClick = { id ->
-                navigateToDetail(id)
-            }
-        )
-        listrecyclerView.adapter = listAdapter
-
-        listrecyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        viewModel.activeEvents.observe(viewLifecycleOwner) { events ->
-            listAdapter.setEvents(events)
+    private fun observeActiveEvents() {
+        viewModel.fetchActiveEvents().observe(viewLifecycleOwner) { result ->
+            resultHandler(result)
         }
-        viewModel.searchResults.observe(viewLifecycleOwner) { events ->
-            listAdapter.setEvents(events)
+    }
+
+    private fun doSearch(query: String) {
+        val active = 1
+        viewModel.searchEvents(active, query).observe(viewLifecycleOwner) { result ->
+            resultHandler(result)
         }
+    }
 
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-
-            if (isLoading) {
+    private fun resultHandler(result: Result<List<DicodingEventEntity>>) {
+        when (result) {
+            is Result.Loading -> {
                 progressBar.visibility = View.VISIBLE
-                listrecyclerView.visibility = View.GONE
-            } else {
+            }
+            is Result.Success -> {
                 progressBar.visibility = View.GONE
-                listrecyclerView.visibility = View.VISIBLE
+                if (result.data.isEmpty()) {
+                    Toast.makeText(context, "No data found", Toast.LENGTH_SHORT).show()
+                }
+                listAdapter.setEvents(result.data)
+            }
+            is Result.Error -> {
+                progressBar.visibility = View.GONE
+                Toast.makeText(context, "Error: ${result.error}", Toast.LENGTH_SHORT).show()
             }
         }
-
-        viewModel.error.observe(viewLifecycleOwner) { error ->
-            if (error != null) {
-                Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        viewModel.fetchEvents(1)
     }
 
-    override fun onResume() {
-        super.onResume()
-        ConnectionHelper.verifyInternet(requireContext())
-        searchViewUpcoming.setQuery(null, false)
-        searchViewUpcoming.clearFocus()
-        searchViewUpcoming.isIconified = true
-        viewModel.fetchEvents(1)
-    }
-
-    private fun navigateToDetail(eventId: Int?) {
-        eventId?.let {
-            val action = UpcomingFragmentDirections.actionNavigationUpcomingToDetailFragment(it)
-            findNavController().navigate(action)
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

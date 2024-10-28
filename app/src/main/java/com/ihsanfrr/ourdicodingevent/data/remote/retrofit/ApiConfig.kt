@@ -1,4 +1,4 @@
-package com.ihsanfrr.ourdicodingevent.data.retrofit
+package com.ihsanfrr.ourdicodingevent.data.remote.retrofit
 
 import retrofit2.Retrofit
 import okhttp3.OkHttpClient

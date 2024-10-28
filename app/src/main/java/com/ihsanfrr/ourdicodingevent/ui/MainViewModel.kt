@@ -3,99 +3,92 @@ package com.ihsanfrr.ourdicodingevent.ui
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.ihsanfrr.ourdicodingevent.data.response.DicodingEventResponse
-import com.ihsanfrr.ourdicodingevent.data.response.ListEventsItem
-import com.ihsanfrr.ourdicodingevent.data.retrofit.ApiConfig
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import com.ihsanfrr.ourdicodingevent.data.DicodingEventRepository
+import com.ihsanfrr.ourdicodingevent.data.local.entity.DicodingEventEntity
+import com.ihsanfrr.ourdicodingevent.data.remote.response.DicodingEventResponse
+import com.ihsanfrr.ourdicodingevent.data.remote.response.ListEventsItem
+import com.ihsanfrr.ourdicodingevent.data.remote.retrofit.ApiConfig
+import com.ihsanfrr.ourdicodingevent.ui.notification.DailyReminderWorker
+import com.ihsanfrr.ourdicodingevent.ui.setting.SettingPreferences
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.concurrent.TimeUnit
 
-class MainViewModel: ViewModel() {
-    private val _activeEvents = MutableLiveData<List<ListEventsItem>>()
-    val activeEvents: LiveData<List<ListEventsItem>> get() = _activeEvents
+class MainViewModel(private val pref: SettingPreferences, private val dicodingEventRepository: DicodingEventRepository, private val workManager: androidx.work.WorkManager): ViewModel() {
+    private val _reminderIsEnabled = MutableLiveData<Boolean>()
+    val reminderIsEnabled: LiveData<Boolean> = _reminderIsEnabled
 
-    private val _inactiveEvents = MutableLiveData<List<ListEventsItem>>()
-    val inactiveEvents: LiveData<List<ListEventsItem>> get() = _inactiveEvents
-
-    private val _error = MutableLiveData<Error?>()
-    val error: MutableLiveData<Error?> get() = _error
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
-    private val _searchResults = MutableLiveData<List<ListEventsItem>>()
-    val searchResults: LiveData<List<ListEventsItem>> get() = _searchResults
-
-    private var isSearching = false
-
-    fun fetchEvents(activeStatus: Int) {
-        isSearching = false
-        _isLoading.value = true
+    init {
         viewModelScope.launch {
-            ApiConfig.getApiService().getDicodingEvent(activeStatus).enqueue(object : Callback<DicodingEventResponse> {
-                override fun onResponse(
-                    call: Call<DicodingEventResponse>,
-                    response: Response<DicodingEventResponse>
-                ) {
-                    _isLoading.value = false
-                    if (response.isSuccessful) {
-                        handleSuccessResponse(activeStatus, response.body()?.listEvents ?: emptyList())
-                    } else {
-                        handleErrorResponse(response.message())
-                    }
-                }
-
-                override fun onFailure(call: Call<DicodingEventResponse>, t: Throwable) {
-                    _isLoading.value = false
-                    _error.value = Error("Failure: ${t.message}")
-                }
-            })
+            pref.getReminderPreference().collect {
+                _reminderIsEnabled.value = it
+            }
         }
     }
 
-    private fun handleSuccessResponse(activeStatus: Int, events: List<ListEventsItem>) {
-        if (activeStatus == 1) {
-            _activeEvents.value = events
-        } else {
-            _inactiveEvents.value = events
-        }
-    }
+    fun fetchActiveEvents() = dicodingEventRepository.getEvents(1)
 
-    private fun handleErrorResponse(message: String) {
-        _error.value = Error("API Error: $message")
-    }
+    fun fetchInactiveEvents() = dicodingEventRepository.getEvents(0)
 
-    fun searchEvents(active: Int, query: String) {
-        isSearching = true
-        _isLoading.value = true
+    fun searchEvents(active: Int, query: String) = dicodingEventRepository.searchEvent(active, query)
+
+    fun getDetailEvent(id: String) = dicodingEventRepository.getEvent(id)
+
+    fun fetchFavoritesEvents() = dicodingEventRepository.getFavoritesEvents()
+
+    fun updateFavoriteStatus(event: DicodingEventEntity, favoriteState: Boolean) {
         viewModelScope.launch {
-            ApiConfig.getApiService().searchDicodingEvent(active, query).enqueue(object : Callback<DicodingEventResponse> {
-                override fun onResponse(
-                    call: Call<DicodingEventResponse>,
-                    response: Response<DicodingEventResponse>
-                ) {
-                    _isLoading.value = false
-                    val events = response.body()?.listEvents ?: emptyList()
-                    _searchResults.value = events
-                    if (events.isEmpty()) {
-                        _error.value = Error("Dicoding Event Not Found!")
-                    }
-                }
-
-                override fun onFailure(call: Call<DicodingEventResponse>, t: Throwable) {
-                    _isLoading.value = false
-                    _error.value = Error("Failure: ${t.message}")
-                }
-            })
+            setFavoritesEvents(event, favoriteState)
         }
     }
 
-    fun clearError() {
-        _error.value = null
-        _searchResults.value = emptyList()
-        _isLoading.value = false
-        isSearching = false
+    private suspend fun setFavoritesEvents(event: DicodingEventEntity, favoriteState: Boolean) {
+        dicodingEventRepository.setFavoritesEvents(event, favoriteState)
     }
+    fun getThemeSettings() : LiveData<Boolean> {
+        return pref.getThemeSetting().asLiveData()
+    }
+
+    fun saveThemeSetting(isDarkModeActive: Boolean) {
+        viewModelScope.launch {
+            pref.saveThemeSetting(isDarkModeActive)
+        }
+    }
+
+    fun toggleReminder(enabled: Boolean) {
+        viewModelScope.launch {
+            pref.saveReminderPreference(enabled)
+            _reminderIsEnabled.value = enabled
+            if (enabled) {
+                scheduleReminder()
+            } else {
+                cancelReminder()
+            }
+        }
+    }
+
+    private fun scheduleReminder() {
+        val reminderRequest = PeriodicWorkRequestBuilder<DailyReminderWorker>(1, TimeUnit.DAYS)
+            .build()
+        workManager.enqueueUniquePeriodicWork(
+            REMINDER_WORK_NAME,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            reminderRequest
+        )
+    }
+
+    private fun cancelReminder() {
+        workManager.cancelUniqueWork(REMINDER_WORK_NAME)
+    }
+
+    companion object {
+        private const val REMINDER_WORK_NAME = "daily_event_reminder"
+    }
+
 }

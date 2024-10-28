@@ -14,4 +14,14 @@
     <string name="upcoming_events">Upcoming Events</string>
     <string name="finished_events">Finished Events</string>
     <string name="event_link">Dicoding Event Link</string>
+    <string name="favorite">Favorite</string>
+    <string name="open_event_link">Dicoding Event Link</string>
+    <string name="daily_reminder">Daily Reminder</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="detail_event">Event Detail</string>
+    <string name="no_link_found">Link Not Found</string>
+    <string name="added_to_favorites">Added to Favorites</string>
+    <string name="removed_from_favorites">Remove from Favorites</string>
+    <string name="title_favorites">Favorites</string>
+    <string name="title_settings">Settings</string>
 </resources>

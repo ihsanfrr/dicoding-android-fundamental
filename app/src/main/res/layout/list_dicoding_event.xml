@@ -42,6 +42,17 @@
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="@string/dicodingeventname" />
 
+                <Button
+                    android:id="@+id/btn_favorite"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/baseline_unfavorite_24"
+                    android:contentDescription="@string/favorite"
+                    android:padding="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tv_event_quota"
+                    android:layout_margin="8dp" />
+
                 <TextView
                     android:id="@+id/tv_event_ownerName"
                     android:layout_width="0dp"
